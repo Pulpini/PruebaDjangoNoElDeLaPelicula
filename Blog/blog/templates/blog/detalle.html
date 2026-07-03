@@ -1,0 +1,8 @@
+<h1>{{ consulta.nombre_paciente }}</h1>
+
+<p>Edad: {{ consulta.edad }}</p>
+<p>Estado: {{ consulta.estado_emocional }}</p>
+<p>Motivo: {{ consulta.motivo_consulta }}</p>
+<p>Observaciones: {{ consulta.observaciones }}</p>
+
+<a href="{% url 'lista_consultas' %}">Volver</a>
