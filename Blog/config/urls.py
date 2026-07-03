@@ -1,22 +1,56 @@
-from django.urls import path
-from . import views
+"""
+Archivo principal de rutas del proyecto.
 
-urlpatterns = [
-    path('', views.lista_consultas, name='lista_consultas'),
+Este archivo recibe todas las peticiones del navegador
+y las deriva hacia la aplicación correspondiente.
 
-    path('consulta/nueva/', views.crear_consulta, name='crear_consulta'),
-
-    path('consulta/<int:pk>/', views.detalle_consulta, name='detalle_consulta'),
-
-    path('consulta/<int:pk>/editar/', views.editar_consulta, name='editar_consulta'),
-
-    path('consulta/<int:pk>/eliminar/', views.eliminar_consulta, name='eliminar_consulta'),
-]
+En este caso solamente existe la aplicación Blog.
+"""
 
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('tu_app.urls')),
+
+    # ==========================================================
+    # Panel de administración de Django
+    # ==========================================================
+    path(
+        'admin/',
+        admin.site.urls
+    ),
+
+    # ==========================================================
+    # Login
+    # Utiliza la vista incorporada de Django.
+    # ==========================================================
+    path(
+        'accounts/login/',
+        auth_views.LoginView.as_view(
+            template_name='blog/login.html'
+        ),
+        name='login'
+    ),
+
+    # ==========================================================
+    # Logout
+    # Después del cierre de sesión vuelve al listado.
+    # ==========================================================
+    path(
+        'accounts/logout/',
+        auth_views.LogoutView.as_view(
+            next_page='lista_articulos'
+        ),
+        name='logout'
+    ),
+
+    # ==========================================================
+    # Todas las rutas del Blog
+    # ==========================================================
+    path(
+        '',
+        include('blog.urls')
+    ),
+
 ]

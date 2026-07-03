@@ -1,8 +1,96 @@
-<h1>{{ consulta.nombre_paciente }}</h1>
+{% extends "blog/base.html" %}
 
-<p>Edad: {{ consulta.edad }}</p>
-<p>Estado: {{ consulta.estado_emocional }}</p>
-<p>Motivo: {{ consulta.motivo_consulta }}</p>
-<p>Observaciones: {{ consulta.observaciones }}</p>
+<!--
+==========================================================
+DETALLE DEL ARTÍCULO
 
-<a href="{% url 'lista_consultas' %}">Volver</a>
+Muestra toda la información de un único artículo.
+
+La variable articulo proviene desde:
+
+detalle_articulo()
+
+==========================================================
+-->
+
+{% block titulo %}
+
+{{ articulo.titulo }}
+
+{% endblock %}
+
+
+{% block contenido %}
+
+<div class="card shadow">
+
+<div class="card-body">
+
+<h1>
+
+{{ articulo.titulo }}
+
+</h1>
+
+<hr>
+
+<p>
+
+<strong>Autor:</strong>
+
+{{ articulo.autor.username }}
+
+</p>
+
+<p>
+
+<strong>Fecha:</strong>
+
+{{ articulo.fecha_creacion|date:"d/m/Y H:i" }}
+
+</p>
+
+<hr>
+
+<p>
+
+{{ articulo.contenido|linebreaks }}
+
+</p>
+
+<hr>
+
+{% if user == articulo.autor %}
+
+<a
+href="{% url 'editar_articulo' articulo.pk %}"
+class="btn btn-warning">
+
+Editar
+
+</a>
+
+<a
+href="{% url 'eliminar_articulo' articulo.pk %}"
+class="btn btn-danger">
+
+Eliminar
+
+</a>
+
+{% endif %}
+
+<a
+href="{% url 'lista_articulos' %}"
+class="btn btn-secondary">
+
+Volver
+
+</a>
+
+</div>
+
+</div>
+
+
+{% endblock %}

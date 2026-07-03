@@ -1,118 +1,270 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 
-from .models import Consulta
-from .forms import ConsultaForm
+# Importamos el modelo Articulo
+from .models import Articulo
 
-
-# DASHBOARD PSICOLÓGICO
-@login_required
-def dashboard(request):
-    consultas = Consulta.objects.filter(psicologo=request.user).order_by('-fecha_creacion')
-
-    total = consultas.count()
-
-    ansiedad = consultas.filter(estado_emocional='Ansiedad').count()
-    depresion = consultas.filter(estado_emocional='Depresión').count()
-
-    return render(request, 'blog/dashboard.html', {
-        'consultas': consultas,
-        'total': total,
-        'ansiedad': ansiedad,
-        'depresion': depresion
-    })
+# Importamos el formulario basado en el modelo
+from .forms import ArticuloForm
 
 
-# LISTA
-@login_required
-def lista_consultas(request):
-    consultas = Consulta.objects.all().order_by('-fecha_creacion')
+# ==========================================================
+# LISTAR ARTÍCULOS
+# ==========================================================
+#
+# Esta vista corresponde a la operación READ del CRUD.
+#
+# Función:
+# - Si el usuario NO ha iniciado sesión:
+#       solamente verá los artículos publicados.
+#
+# - Si el usuario inició sesión:
+#       verá todos los artículos creados por él,
+#       incluso aquellos que aún no están publicados.
+#
+# Parámetros:
+# request -> petición HTTP enviada por el navegador.
+#
+# Retorna:
+# Template lista.html junto con la lista de artículos.
+# ==========================================================
+def lista_articulos(request):
 
-    return render(request, 'blog/lista.html', {
-        'consultas': consultas
-    })
+    if request.user.is_authenticated:
 
-
-# DETALLE
-@login_required
-def detalle_consulta(request, pk):
-    consulta = get_object_or_404(Consulta, pk=pk)
-
-    return render(request, 'blog/detalle.html', {
-        'consulta': consulta
-    })
-
-
-# CREAR
-@login_required
-def crear_consulta(request):
-    if request.method == 'POST':
-        form = ConsultaForm(request.POST)
-
-        if form.is_valid():
-            consulta = form.save(commit=False)
-            consulta.psicologo = request.user
-            consulta.save()
-
-            return redirect('lista_consultas')
+        articulos = Articulo.objects.filter(
+            autor=request.user
+        )
 
     else:
-        form = ConsultaForm()
 
-    return render(request, 'blog/form.html', {
-        'form': form,
-        'titulo': 'Registrar Consulta Psicológica'
-    })
+        articulos = Articulo.objects.filter(
+            publicado=True
+        )
+
+    return render(
+        request,
+        "blog/lista.html",
+        {
+            "articulos": articulos
+        }
+    )
 
 
-# EDITAR
+# ==========================================================
+# DETALLE DEL ARTÍCULO
+# ==========================================================
+#
+# Muestra toda la información de un artículo.
+#
+# get_object_or_404():
+# Busca un objeto por su ID.
+#
+# Si no existe genera automáticamente un error 404.
+#
+# Además verifica que un usuario no pueda acceder
+# a artículos privados pertenecientes a otro autor.
+# ==========================================================
+def detalle_articulo(request, pk):
+
+    articulo = get_object_or_404(
+        Articulo,
+        pk=pk
+    )
+
+    # Si el artículo no está publicado y además
+    # el usuario no es su autor, se bloquea el acceso.
+    if (
+        not articulo.publicado
+        and articulo.autor != request.user
+    ):
+
+        messages.error(
+            request,
+            "Este artículo no está disponible."
+        )
+
+        return redirect(
+            "lista_articulos"
+        )
+
+    return render(
+        request,
+        "blog/detalle.html",
+        {
+            "articulo": articulo
+        }
+    )
+
+
+# ==========================================================
+# CREAR ARTÍCULO
+# ==========================================================
+#
+# Corresponde a la operación CREATE del CRUD.
+#
+# Solo usuarios autenticados pueden crear artículos.
+#
+# GET
+# ----
+# Muestra el formulario vacío.
+#
+# POST
+# -----
+# Recibe los datos ingresados por el usuario.
+#
+# commit=False
+# -------------
+# Permite modificar el objeto antes de guardarlo
+# en la base de datos.
+#
+# En este caso se asigna automáticamente
+# el usuario autenticado como autor.
+# ==========================================================
 @login_required
-def editar_consulta(request, pk):
-    consulta = get_object_or_404(Consulta, pk=pk)
+def crear_articulo(request):
 
-    form = ConsultaForm(request.POST or None, instance=consulta)
+    if request.method == "POST":
 
-    if request.method == 'POST':
+        form = ArticuloForm(request.POST)
+
         if form.is_valid():
-            form.save()
-            return redirect('lista_consultas')
 
-    return render(request, 'blog/form.html', {
-        'form': form,
-        'titulo': 'Editar Consulta'
-    })
+            # No guardar todavía.
+            articulo = form.save(commit=False)
+
+            # Asignar automáticamente el usuario.
+            articulo.autor = request.user
+
+            # Guardar finalmente en SQLite.
+            articulo.save()
+
+            messages.success(
+                request,
+                "¡Artículo creado exitosamente!"
+            )
+
+            return redirect(
+                "detalle_articulo",
+                pk=articulo.pk
+            )
+
+    else:
+
+        form = ArticuloForm()
+
+    return render(
+        request,
+        "blog/form.html",
+        {
+            "form": form,
+            "accion": "Crear"
+        }
+    )
 
 
-# ELIMINAR
+# ==========================================================
+# EDITAR ARTÍCULO
+# ==========================================================
+#
+# Corresponde a UPDATE del CRUD.
+#
+# Solo el propietario puede modificar
+# sus propios artículos.
+#
+# instance=articulo
+# -----------------
+# Indica que el formulario trabajará sobre
+# un registro existente y no creará uno nuevo.
+# ==========================================================
 @login_required
-def eliminar_consulta(request, pk):
-    consulta = get_object_or_404(Consulta, pk=pk)
+def editar_articulo(request, pk):
 
-    if request.method == 'POST':
-        consulta.delete()
-        return redirect('lista_consultas')
+    articulo = get_object_or_404(
+        Articulo,
+        pk=pk,
+        autor=request.user
+    )
 
-    return render(request, 'blog/confirmar-eliminar.html', {
-        'consulta': consulta
-    })
+    if request.method == "POST":
+
+        form = ArticuloForm(
+            request.POST,
+            instance=articulo
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "¡Artículo actualizado correctamente!"
+            )
+
+            return redirect(
+                "detalle_articulo",
+                pk=articulo.pk
+            )
+
+    else:
+
+        form = ArticuloForm(
+            instance=articulo
+        )
+
+    return render(
+        request,
+        "blog/form.html",
+        {
+            "form": form,
+            "accion": "Editar",
+            "articulo": articulo
+        }
+    )
 
 
-# LOGIN SIMPLE
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+# ==========================================================
+# ELIMINAR ARTÍCULO
+# ==========================================================
+#
+# Corresponde a DELETE del CRUD.
+#
+# Solamente el autor del artículo
+# tiene permiso para eliminarlo.
+#
+# Primero muestra una página de confirmación.
+#
+# Si el usuario confirma (POST),
+# el registro se elimina de SQLite.
+# ==========================================================
+@login_required
+def eliminar_articulo(request, pk):
 
-        user = authenticate(request, username=username, password=password)
+    articulo = get_object_or_404(
+        Articulo,
+        pk=pk,
+        autor=request.user
+    )
 
-        if user:
-            login(request, user)
-            return redirect('dashboard')
+    if request.method == "POST":
 
-    return render(request, 'blog/login.html')
+        articulo.delete()
 
+        messages.success(
+            request,
+            "Artículo eliminado correctamente."
+        )
 
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+        return redirect(
+            "lista_articulos"
+        )
+
+    return render(
+        request,
+        "blog/confirmar_eliminar.html",
+        {
+            "articulo": articulo
+        }
+    )

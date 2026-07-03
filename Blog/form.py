@@ -1,16 +1,26 @@
 from django import forms
-from .models import Consulta
+from .models import Articulo
 
-
-class ConsultaForm(forms.ModelForm):
-
+class ArticuloForm(forms.ModelForm):
     class Meta:
-        model = Consulta
-
-        fields = [
-            'nombre_paciente',
-            'edad',
-            'motivo_consulta',
-            'observaciones',
-            'estado_emocional'
-        ]
+        model = Articulo
+        fields = ['titulo', 'contenido', 'publicado']
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingresa el título del artículo'
+            }),
+            'contenido': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 8,
+                'placeholder': 'Escribe el contenido aquí...'
+            }),
+            'publicado': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+        labels = {
+            'titulo': 'Título',
+            'contenido': 'Contenido',
+            'publicado': '¿Publicar artículo?',
+        }

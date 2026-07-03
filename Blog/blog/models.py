@@ -1,32 +1,61 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User  # type: ignore
 
 
-class Consulta(models.Model):
+# ==========================================================
+# Modelo Articulo
+# ----------------------------------------------------------
+# Representa una publicación creada por un usuario.
+#
+# Cada artículo posee:
+# - un título
+# - un contenido
+# - un autor
+# - un estado (publicado o borrador)
+# - fecha de creación
+# - fecha de modificación
+# ==========================================================
 
-    psicologo = models.ForeignKey(
+class Articulo(models.Model):
+
+    # Título del artículo
+    titulo = models.CharField(max_length=200)
+
+    # Contenido principal
+    contenido = models.TextField()
+
+    # Usuario propietario del artículo
+    autor = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        null=True,
-        blank=True
+        related_name="articulos"
     )
 
-    nombre_paciente = models.CharField(max_length=100)
-    edad = models.IntegerField()
+    # Indica si el artículo es público
+    publicado = models.BooleanField(default=False)
 
-    motivo_consulta = models.TextField()
-    observaciones = models.TextField(blank=True, null=True)
+    # Fecha de creación automática
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
 
-    ESTADOS = [
-        ('Ansiedad', 'Ansiedad'),
-        ('Estrés', 'Estrés'),
-        ('Autoestima', 'Autoestima'),
-        ('Depresión', 'Depresión'),
-    ]
+    # Fecha de actualización automática
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
 
-    estado_emocional = models.CharField(max_length=30, choices=ESTADOS)
-
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
+    # Texto que aparecerá en el panel administrador
     def __str__(self):
-        return f"{self.nombre_paciente} - {self.estado_emocional}"
+        return self.titulo
+
+    # Configuración adicional del modelo
+    class Meta:
+
+        # Ordenar desde el más reciente
+        ordering = ["-fecha_creacion"]
+
+        # Nombre singular
+        verbose_name = "Artículo"
+
+        # Nombre plural
+        verbose_name_plural = "Artículos"

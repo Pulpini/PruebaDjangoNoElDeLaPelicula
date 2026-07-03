@@ -1,19 +1,91 @@
-{% extends 'blog/base.html' %}
-{% block titulo %}Eliminar Artículo{% endblock %}
-{% block contenido %}
-<div class="row justify-content-center">
-    <div class="col-md-6 text-center">
-        <h2 class="text-danger">¿Eliminar artículo?</h2>
-        <p class="lead">Estás a punto de eliminar permanentemente:</p>
-        <blockquote class="blockquote">
-            <p>"{{ articulo.titulo }}"</p>
-        </blockquote>
-        <p class="text-muted">Esta acción no se puede deshacer.</p>
-        <form method="post" class="mt-3">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger me-2">Sí, eliminar</button>
-            <a href="{% url 'detalle_articulo' articulo.pk %}" class="btn btn-secondary">Cancelar</a>
-        </form>
-    </div>
-</div>
+{% extends "blog/base.html" %}
+
+<!--
+=========================================================
+Página de confirmación
+
+Antes de eliminar un registro se solicita
+confirmación al usuario.
+
+Esto evita eliminaciones accidentales.
+=========================================================
+-->
+
+{% block titulo %}
+
+Eliminar artículo
+
 {% endblock %}
+
+
+{% block contenido %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-7">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h2 class="text-danger">
+
+                    Eliminar artículo
+
+                </h2>
+
+                <hr>
+
+                <p>
+
+                    Está a punto de eliminar el siguiente artículo:
+
+                </p>
+
+                <blockquote class="blockquote">
+
+                    <strong>
+
+                        {{ articulo.titulo }}
+
+                    </strong>
+
+                </blockquote>
+
+                <p class="text-muted">
+
+                    Esta acción es irreversible.
+
+                </p>
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+                    <button
+                        class="btn btn-danger">
+
+                        Sí, eliminar
+
+                    </button>
+
+                    <a
+                        href="{% url 'detalle_articulo' articulo.pk %}"
+                        class="btn btn-secondary">
+
+                        Cancelar
+
+                    </a>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{% endblock %}  
