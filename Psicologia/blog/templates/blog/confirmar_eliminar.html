@@ -1,0 +1,73 @@
+{% extends "blog/base.html" %}
+
+{% block title %}
+Eliminar artículo
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+```
+<div class="col-md-6">
+
+    <div class="card border-danger shadow">
+
+        <div class="card-header bg-danger text-white">
+
+            <h3 class="mb-0">
+
+                Confirmar eliminación
+
+            </h3>
+
+        </div>
+
+        <div class="card-body">
+
+            <p class="fs-5">
+
+                ¿Estás seguro de que deseas eliminar el siguiente artículo?
+
+            </p>
+
+            <div class="alert alert-warning">
+
+                <strong>
+
+                    {{ articulo.titulo }}
+
+                </strong>
+
+            </div>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <button type="submit"
+                        class="btn btn-danger">
+
+                    Sí, eliminar
+
+                </button>
+
+                <a href="{% url 'detalle_articulo' articulo.pk %}"
+                   class="btn btn-secondary">
+
+                    Cancelar
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

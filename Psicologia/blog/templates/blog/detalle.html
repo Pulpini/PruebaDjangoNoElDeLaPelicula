@@ -1,0 +1,74 @@
+{% extends "blog/base.html" %}
+
+{% block title %}
+{{ articulo.titulo }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow">
+
+```
+<div class="card-body">
+
+    <h1 class="card-title">
+
+        {{ articulo.titulo }}
+
+    </h1>
+
+    <hr>
+
+    <p class="text-muted">
+
+        <strong>Autor:</strong>
+        {{ articulo.autor.username }}
+
+        <br>
+
+        <strong>Fecha:</strong>
+        {{ articulo.fecha_creacion|date:"d/m/Y H:i" }}
+
+    </p>
+
+    <div class="mt-4">
+
+        {{ articulo.contenido|linebreaks }}
+
+    </div>
+
+</div>
+
+<div class="card-footer">
+
+    <a href="{% url 'lista_articulos' %}"
+       class="btn btn-secondary">
+
+        Volver
+
+    </a>
+
+    {% if user == articulo.autor %}
+
+        <a href="{% url 'editar_articulo' articulo.pk %}"
+           class="btn btn-warning">
+
+            Editar
+
+        </a>
+
+        <a href="{% url 'eliminar_articulo' articulo.pk %}"
+           class="btn btn-danger">
+
+            Eliminar
+
+        </a>
+
+    {% endif %}
+
+</div>
+```
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "blog/base.html" %}
+
+{% block title %}
+{{ accion }} artículo
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+```
+<div class="col-md-8">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h3 class="mb-0">
+                {{ accion }} artículo
+            </h3>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                {{ form.as_p }}
+
+                <hr>
+
+                <button type="submit"
+                        class="btn btn-success">
+
+                    Guardar
+
+                </button>
+
+                <a href="{% url 'lista_articulos' %}"
+                   class="btn btn-secondary">
+
+                    Cancelar
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "blog/base.html" %}
+
+{% block title %}
+Inicio
+{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4 text-center">
+    Blog CRUD
+</h1>
+
+{% if articulos %}
+
+```
+{% for articulo in articulos %}
+
+<div class="card mb-4 shadow-sm">
+
+    <div class="card-body">
+
+        <h3 class="card-title">
+
+            {{ articulo.titulo }}
+
+        </h3>
+
+        <p class="text-muted">
+
+            Autor:
+            <strong>{{ articulo.autor.username }}</strong>
+
+        </p>
+
+        <p class="card-text">
+
+            {{ articulo.contenido|truncatewords:30 }}
+
+        </p>
+
+        <a href="{% url 'detalle_articulo' articulo.pk %}"
+           class="btn btn-primary">
+
+            Leer más
+
+        </a>
+
+        {% if user == articulo.autor %}
+
+            <a href="{% url 'editar_articulo' articulo.pk %}"
+               class="btn btn-warning">
+
+                Editar
+
+            </a>
+
+            <a href="{% url 'eliminar_articulo' articulo.pk %}"
+               class="btn btn-danger">
+
+                Eliminar
+
+            </a>
+
+        {% endif %}
+
+    </div>
+
+    <div class="card-footer text-muted">
+
+        Publicado:
+        {{ articulo.fecha_creacion|date:"d/m/Y H:i" }}
+
+    </div>
+
+</div>
+
+{% endfor %}
+```
+
+{% else %}
+
+<div class="alert alert-info text-center">
+
+```
+<h4>
+
+    No existen artículos disponibles.
+
+</h4>
+
+{% if user.is_authenticated %}
+
+    <p>
+
+        Puedes crear el primero utilizando el botón
+        <strong>Nuevo artículo</strong>.
+
+    </p>
+
+{% else %}
+
+    <p>
+
+        Inicia sesión para comenzar a publicar artículos.
+
+    </p>
+
+{% endif %}
+```
+
+</div>
+
+{% endif %}
+
+{% endblock %}
