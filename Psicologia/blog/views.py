@@ -2,6 +2,19 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
+# ==============================
+# Django REST Framework
+# ==============================
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from .serializers import (
+    RegistroSerializer,
+    ArticuloSerializer,
+)
 # Importamos el modelo Articulo
 from .models import Articulo
 
@@ -266,5 +279,169 @@ def eliminar_articulo(request, pk):
         "blog/confirmar_eliminar.html",
         {
             "articulo": articulo
+        }
+    )
+# ==========================================================
+# API PÚBLICA
+# ==========================================================
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def api_publica(request):
+
+    return Response({
+        "mensaje": "Esta es una ruta pública."
+    })
+
+
+# ==========================================================
+# REGISTRO
+# ==========================================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def registrar_usuario(request):
+
+    serializer = RegistroSerializer(
+        data=request.data
+    )
+
+    if serializer.is_valid():
+
+        serializer.save()
+
+        return Response(
+            {
+                "mensaje": "Usuario creado correctamente."
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+
+# ==========================================================
+# LISTAR TODOS
+# ==========================================================
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def api_articulos(request):
+
+    articulos = Articulo.objects.filter(
+        autor=request.user
+    )
+
+    serializer = ArticuloSerializer(
+        articulos,
+        many=True
+    )
+
+    return Response(serializer.data)
+
+
+# ==========================================================
+# DETALLE
+# ==========================================================
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def api_articulo(request, pk):
+
+    articulo = get_object_or_404(
+        Articulo,
+        pk=pk,
+        autor=request.user
+    )
+
+    serializer = ArticuloSerializer(
+        articulo
+    )
+
+    return Response(serializer.data)
+
+
+# ==========================================================
+# CREAR
+# ==========================================================
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def api_crear(request):
+
+    serializer = ArticuloSerializer(
+        data=request.data
+    )
+
+    if serializer.is_valid():
+
+        serializer.save(
+            autor=request.user
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+
+# ==========================================================
+# EDITAR
+# ==========================================================
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def api_editar(request, pk):
+
+    articulo = get_object_or_404(
+        Articulo,
+        pk=pk,
+        autor=request.user
+    )
+
+    serializer = ArticuloSerializer(
+        articulo,
+        data=request.data
+    )
+
+    if serializer.is_valid():
+
+        serializer.save()
+
+        return Response(serializer.data)
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+
+# ==========================================================
+# ELIMINAR
+# ==========================================================
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def api_eliminar(request, pk):
+
+    articulo = get_object_or_404(
+        Articulo,
+        pk=pk,
+        autor=request.user
+    )
+
+    articulo.delete()
+
+    return Response(
+        {
+            "mensaje": "Artículo eliminado."
         }
     )
